@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>방학과제 기록장 · 시작하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --ink:#12303F; --ink-soft:#5B7B8A; --paper:#E7F0F1; --card:#FFF;
+  --line:#C6DADE; --line-soft:#DFEAEC; --mark:#0E6E78; --warn:#C4553F; --gold:#E0A008;
+  --body:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --display:"Gowun Dodum","Pretendard Variable",sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:var(--body);color:var(--ink);background:var(--paper);line-height:1.65;
+  background-image:radial-gradient(circle at 10% 4%,rgba(255,255,255,.9) 0 24%,transparent 60%);
+}
+.wrap{max-width:760px;margin:0 auto;padding:28px 18px 90px}
+
+/* 표지 */
+.cover{text-align:center;padding:26px 0 10px}
+.cover .eyebrow{font-size:13px;letter-spacing:3px;color:var(--mark);font-weight:700}
+.cover h1{font-family:var(--display);font-weight:400;font-size:38px;margin:8px 0 6px;letter-spacing:-1px}
+.cover p{margin:0 auto;max-width:520px;color:var(--ink-soft);font-size:15px}
+.coverjars{display:flex;justify-content:center;gap:12px;margin:26px 0 8px}
+
+/* 유리병 */
+.jar{--fill:0%;--tint:var(--mark);--ticks:10;display:flex;flex-direction:column;align-items:center;width:46px;height:70px}
+.jar-neck{width:44%;height:7px;background:#fff;border:2px solid var(--ink);border-bottom:0;border-radius:5px 5px 0 0}
+.jar-body{position:relative;width:100%;flex:1;background:#fff;border:2px solid var(--ink);border-radius:5px 5px 13px 13px;overflow:hidden}
+.jar-liquid{position:absolute;left:0;right:0;bottom:0;height:var(--fill);background:var(--tint)}
+.jar-liquid::after{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:#fff;opacity:.4}
+.jar-ticks{position:absolute;inset:0;background-image:repeating-linear-gradient(to top,rgba(18,48,63,.3) 0 1px,transparent 1px calc(100%/var(--ticks)))}
+.jar.full .jar-body{border-color:var(--gold);box-shadow:0 0 0 3px rgba(224,160,8,.2)}
+.jar.full .jar-neck{border-color:var(--gold)}
+.jar--sm{width:34px;height:52px}
+
+/* 카드 */
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:22px 24px;margin:14px 0;
+  box-shadow:0 1px 0 var(--line),0 6px 18px -14px rgba(18,48,63,.5)}
+h2{font-family:var(--display);font-weight:400;font-size:23px;margin:34px 0 2px;letter-spacing:-.4px}
+h2 + .lead{margin:0 0 12px;color:var(--ink-soft);font-size:14.5px}
+h3{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 4px}
+p{margin:0 0 12px}
+p:last-child{margin-bottom:0}
+ol,ul{margin:0;padding-left:22px}
+li{margin-bottom:9px}
+li:last-child{margin-bottom:0}
+b{font-weight:700}
+code{background:#F1F7F8;border:1px solid var(--line-soft);border-radius:5px;padding:1px 6px;font-size:.9em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mark);word-break:break-all}
+a{color:var(--mark)}
+
+/* 준비 단계 — 병이 차오르는 것으로 진행도 표시 */
+.stepcard{display:grid;grid-template-columns:52px 1fr;gap:20px;align-items:start}
+.stepcard .num{font-size:12px;font-weight:700;color:var(--ink-soft);text-align:center;margin-top:8px;letter-spacing:1px}
+
+/* 강조 상자 */
+.note{border-left:4px solid var(--mark);background:#F6FAFB;border-radius:0 10px 10px 0;padding:13px 16px;margin:14px 0;font-size:14.5px}
+.note.warn{border-left-color:var(--warn);background:#FDF6F4}
+.note.gold{border-left-color:var(--gold);background:#FFFBF0}
+.note .t{font-weight:700;display:block;margin-bottom:3px}
+
+/* 링크 채워넣는 칸 */
+.slot{background:#FFFBF0;border:1.5px dashed var(--gold);border-radius:12px;padding:16px 18px;margin:10px 0}
+.slot .k{font-size:12.5px;font-weight:700;color:#8A6300;letter-spacing:.5px}
+.slot .v{font-size:15px;margin-top:4px;word-break:break-all}
+.slot .v em{font-style:normal;color:var(--ink-soft)}
+
+/* 표 */
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin-top:6px}
+th,td{padding:11px 12px;border-bottom:1px solid var(--line-soft);text-align:left;vertical-align:top}
+th{font-size:12.5px;color:var(--ink-soft);font-weight:700;white-space:nowrap}
+td:first-child{width:38%;font-weight:600}
+
+/* 체크리스트 */
+.check{list-style:none;padding:0}
+.check li{position:relative;padding-left:30px;margin-bottom:11px}
+.check li::before{content:"";position:absolute;left:0;top:3px;width:18px;height:18px;border:2px solid var(--ink);border-radius:5px;background:#fff}
+
+.foot{text-align:center;color:var(--ink-soft);font-size:13.5px;margin-top:46px;padding-top:22px;border-top:1px solid var(--line)}
+
+@media (max-width:520px){
+  .cover h1{font-size:30px}
+  .stepcard{grid-template-columns:38px 1fr;gap:14px}
+  .card{padding:18px}
+  td:first-child{width:auto}
+  table,tbody,tr,td,th{display:block}
+  th{display:none}
+  tr{border-bottom:1px solid var(--line-soft);padding:8px 0}
+  td{border:0;padding:2px 0}
+}
+@media print{
+  body{background:#fff}
+  .card{box-shadow:none;break-inside:avoid}
+  .wrap{padding:0}
+  a{color:var(--ink);text-decoration:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="cover">
+  <div class="eyebrow">선생님을 위한 시작 안내</div>
+  <h1>방학과제 기록장</h1>
+  <p>학생이 태블릿으로 자기 방학과제 수행 정도를 기록하면, 선생님 화면에 우리 반 전체 현황이 그래프로 모이는 웹앱입니다.</p>
+  <div class="coverjars">
+    <div class="jar" style="--fill:70%;--tint:#1F8A70;--ticks:10"><div class="jar-neck"></div><div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div></div>
+    <div class="jar full" style="--fill:100%;--tint:#F2A03D;--ticks:10"><div class="jar-neck"></div><div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div></div>
+    <div class="jar" style="--fill:40%;--tint:#4C7DE0;--ticks:20"><div class="jar-neck"></div><div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div></div>
+  </div>
+</div>
+
+<h2>어떻게 쓰는 앱인가요</h2>
+<div class="card">
+  <p>선생님이 방학과제를 미리 등록해 둡니다. <b>책 읽기 10권</b>, <b>꿈을 위한 활동 10회</b>처럼요.</p>
+  <p>학생은 QR을 찍어 들어와 자기 번호를 누르고, 해 온 만큼 <b>＋ / −</b> 버튼으로 병을 채웁니다. 병에 그어진 눈금 한 칸이 과제 하나여서, 10권 중 7권이면 눈금 10칸 중 7칸이 찹니다. 한 줄 소감도 남길 수 있습니다.</p>
+  <p>선생님 화면에는 제출 인원, 반 평균 달성률, 과제별 평균, 학생별 현황이 모입니다. 달성률이 낮은 학생부터 정렬해 상담 대상을 찾거나, CSV로 내려받아 기록 자료로 쓸 수 있습니다.</p>
+  <div class="note">
+    <span class="t">기록은 선생님 개인 스프레드시트에 쌓입니다</span>
+    선생님마다 자기 스프레드시트를 갖기 때문에, 다른 반 명단이나 기록은 서로 보이지 않습니다. 화면만 함께 쓰는 구조입니다.
+  </div>
+</div>
+
+<h2>준비하기 · 15분</h2>
+<p class="lead">한 번만 하면 되고, 컴퓨터에 아무것도 설치하지 않습니다.</p>
+
+<div class="card stepcard">
+  <div>
+    <div class="jar jar--sm" style="--fill:33%;--tint:#1F8A70;--ticks:3"><div class="jar-neck"></div><div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div></div>
+    <div class="num">1 / 3</div>
+  </div>
+  <div>
+    <h3>내 스프레드시트 만들기</h3>
+    <p>아래 <b>사본 링크</b>를 열면 "사본 만들기" 버튼이 나옵니다. 누르면 내 구글 드라이브에 스프레드시트가 하나 생깁니다. 여기에 우리 반 기록이 쌓입니다.</p>
+    <div class="slot">
+      <div class="k">사본 링크</div>
+      <div class="v"><a href="https://docs.google.com/spreadsheets/d/1IjwQf43kaU3aCvm6vY_1leb3UcXaF9HTx3Gk3mQMdnQ/copy">https://docs.google.com/spreadsheets/d/1IjwQf43kaU3aCvm6vY_1leb3UcXaF9HTx3Gk3mQMdnQ/copy</a></div>
+    </div>
+    <p>파일 이름은 <code>2학기 방학과제 기록 - 4학년 2반</code>처럼 알아보기 쉽게 바꿔 두세요.</p>
+  </div>
+</div>
+
+<div class="card stepcard">
+  <div>
+    <div class="jar jar--sm" style="--fill:66%;--tint:#1F8A70;--ticks:3"><div class="jar-neck"></div><div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div></div>
+    <div class="num">2 / 3</div>
+  </div>
+  <div>
+    <h3>웹앱으로 배포하기</h3>
+    <p>사본으로 만든 스프레드시트를 열고 순서대로 누릅니다.</p>
+    <ol>
+      <li>상단 메뉴 <b>확장 프로그램 → Apps Script</b></li>
+      <li>새 창이 열리면 오른쪽 위 <b>배포 → 새 배포</b></li>
+      <li>왼쪽 톱니바퀴 <b>⚙ → 웹 앱</b> 선택</li>
+      <li>다음 사용자 인증 정보로 실행: <b>나</b></li>
+      <li>액세스 권한이 있는 사용자: <b>모든 사용자</b> <em>(중요)</em></li>
+      <li><b>배포</b> 누르기</li>
+    </ol>
+    <div class="note warn">
+      <span class="t">여기서 경고 화면이 뜹니다 — 정상입니다</span>
+      "Google에서 확인하지 않은 앱"이라는 화면이 나오면 왼쪽 아래 <b>고급</b> → <b>(프로젝트 이름)(으)로 이동</b> → <b>허용</b>을 차례로 누르세요. 내가 방금 만든 내 스크립트라서 나오는 안내이고, 한 번만 거치면 됩니다. 대부분 여기서 멈추시는데, 그냥 진행하시면 됩니다.
+    </div>
+    <p>끝나면 <code>https://script.google.com/macros/s/...../exec</code> 로 끝나는 주소가 나옵니다. <b>복사해 두세요.</b> 다음 단계에서 씁니다.</p>
+  </div>
+</div>
+
+<div class="card stepcard">
+  <div>
+    <div class="jar jar--sm full" style="--fill:100%;--tint:#1F8A70;--ticks:3"><div class="jar-neck"></div><div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div></div>
+    <div class="num">3 / 3</div>
+  </div>
+  <div>
+    <h3>앱과 연결하기</h3>
+    <p>아래 <b>앱 주소</b>를 브라우저에서 엽니다. 주소를 묻는 화면이 나오면 2단계에서 복사한 <code>/exec</code> 주소를 붙여넣고 <b>연결하기</b>를 누르세요.</p>
+    <div class="slot">
+      <div class="k">앱 주소</div>
+      <div class="v"><a href="https://knightayj52.github.io/homework-jar/">https://knightayj52.github.io/homework-jar/</a></div>
+    </div>
+    <p>연결되면 준비 끝입니다. 이 입력은 선생님이 한 번만 하면 되고, 학생들은 이 화면을 볼 일이 없습니다.</p>
+  </div>
+</div>
+
+<h2>수업 전에 설정할 것</h2>
+<p class="lead">앱 오른쪽 위 <b>선생님 화면</b> 버튼을 누르고 PIN <code>2026</code>을 입력해 들어갑니다.</p>
+
+<div class="card">
+  <h3>① 기본 설정 — PIN부터 바꾸기</h3>
+  <p>기본값 <code>2026</code>은 이 안내문에 적혀 있어서 누구나 압니다. <b>가장 먼저 바꿔 주세요.</b> 반 번호나 학년처럼 학생이 떠올릴 만한 숫자는 피하시는 게 좋습니다. 반 이름, 학생에게 보여 줄 안내 문구, 기록 마감일도 여기서 정합니다.</p>
+</div>
+
+<div class="card">
+  <h3>② 학생 명단</h3>
+  <p>한 줄에 한 명씩, 학번과 이름을 띄어쓰기로 구분해 적고 저장합니다.</p>
+  <p><code>1 김민준</code><br><code>2 이서연</code><br><code>3 박도윤</code></p>
+  <p>나이스에서 복사한 형태(탭으로 구분된 것)나 쉼표로 구분한 것도 그대로 인식합니다.</p>
+</div>
+
+<div class="card">
+  <h3>③ 과제 설정</h3>
+  <p>과제 이름 · 목표 수량 · 단위 · 색을 정합니다. <b>목표 수량이 그대로 병의 눈금 개수</b>가 되니, 학생이 세기 좋은 숫자로 정하면 좋습니다.</p>
+  <table>
+    <tr><td>책 읽기</td><td>10 권</td></tr>
+    <tr><td>꿈을 위한 활동</td><td>10 회</td></tr>
+    <tr><td>줄넘기</td><td>20 일</td></tr>
+  </table>
+</div>
+
+<div class="card">
+  <h3>④ 링크 · QR</h3>
+  <p>이 탭에 우리 반 전용 링크와 QR 코드가 자동으로 만들어져 있습니다. <b>QR 인쇄하기</b>를 누르면 반 이름과 큰 QR만 담긴 한 장이 나옵니다. 교실에 붙여 두거나 TV에 띄워 두면 됩니다.</p>
+  <div class="note gold">
+    <span class="t">이 링크와 QR은 교실 안에만 두세요</span>
+    링크를 가진 사람은 PIN 없이도 우리 반 명단을 보고 기록을 고칠 수 있습니다. 가정통신문이나 학급 밴드에 올리지 마시고, 교실에서 다 같이 기록하는 시간에만 쓰시는 것을 권합니다.
+  </div>
+</div>
+
+<h2>학생이 하는 일</h2>
+<div class="card">
+  <ol>
+    <li>태블릿 카메라로 QR을 찍어 들어옵니다. 주소를 입력할 일은 없습니다.</li>
+    <li>자기 번호를 누르고 이름을 확인합니다.</li>
+    <li>과제마다 <b>＋ / −</b>를 눌러 해 온 만큼 병을 채웁니다.</li>
+    <li>방학을 돌아보며 한 줄 적고 <b>기록 제출하기</b>를 누릅니다.</li>
+    <li>제출하면 자기 달성률이 바로 보입니다. 틀렸으면 <b>기록 고치기</b>로 다시 낼 수 있습니다.</li>
+  </ol>
+  <p>태블릿 한 대를 여러 명이 돌아가며 쓸 때는 마지막 화면의 <b>다음 사람 차례</b> 버튼을 누르면 됩니다.</p>
+</div>
+
+<h2>선생님 화면 보는 법</h2>
+<div class="card">
+  <table>
+    <tr><td>요약</td><td>제출 인원, 반 평균 달성률, 아직 확인하지 않은 새 기록 수, 마감일</td></tr>
+    <tr><td>과제별 반 평균</td><td>과제마다 눈금 막대로 평균 수행량과 목표를 채운 인원</td></tr>
+    <tr><td>학생별 현황</td><td>학생 카드마다 달성률과 과제별 미니 병. 이름을 누르면 상세 기록과 소감이 열립니다</td></tr>
+    <tr><td>정렬 바꾸기</td><td><b>달성률 낮은 순</b>이나 <b>미제출 먼저</b>로 바꾸면 살펴야 할 학생이 위로 올라옵니다</td></tr>
+    <tr><td>새 기록 표시</td><td>새로 들어온 기록에 노란 점이 붙습니다. <b>새 기록 확인 완료</b>를 누르면 지워집니다</td></tr>
+    <tr><td>CSV 내보내기</td><td>엑셀에서 바로 열립니다. 상담 자료나 기록 참고용으로 쓰세요</td></tr>
+  </table>
+</div>
+
+<h2>자주 막히는 곳</h2>
+<div class="card">
+  <table>
+    <thead><tr><th>이런 화면이 나오면</th><th>이렇게 하세요</th></tr></thead>
+    <tbody>
+      <tr><td>"Google에서 확인하지 않은 앱"</td><td>정상입니다. 고급 → (프로젝트 이름)(으)로 이동 → 허용</td></tr>
+      <tr><td>"서버에 연결하지 못했습니다"</td><td>배포할 때 액세스 권한을 <b>모든 사용자</b>로 했는지 확인하세요. 가장 흔한 원인입니다</td></tr>
+      <tr><td>학생 화면에 "명단이 없습니다"</td><td>선생님 화면에서 학생 명단을 먼저 저장해 주세요</td></tr>
+      <tr><td>QR을 찍었는데 다른 반이 뜬다</td><td>그 태블릿이 예전에 다른 선생님 QR로 들어간 것입니다. 내 QR로 다시 찍으면 덮어써집니다</td></tr>
+      <tr><td>PIN을 잊었다</td><td>스프레드시트의 <b>설정</b> 시트에서 <code>교사PIN</code> 값을 직접 보거나 고치면 됩니다</td></tr>
+      <tr><td>새로고침하면 다시 PIN을 묻는다</td><td>일부러 그렇게 했습니다. 공용 태블릿에서 학생이 선생님 화면에 들어가는 것을 막기 위해서입니다</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>알아두면 좋은 것</h2>
+<div class="card">
+  <p><b>학생이 다시 내면</b> 이전 기록을 덮어씁니다. 줄이 중복되지 않고, 몇 번째 수정인지는 학생 상세 화면에 남습니다.</p>
+  <p><b>명단을 바꿔도</b> 기록은 학번을 기준으로 남습니다. 학번이 같으면 이름만 바뀌어도 기록은 그대로 이어집니다.</p>
+  <p><b>다음 방학에 다시 쓰려면</b> 기본 설정의 <b>모든 기록 지우기</b>로 기록만 비우면 됩니다. 과제와 명단은 남습니다. 지우기 전에 CSV를 먼저 내려받아 두세요.</p>
+  <p><b>학기가 끝나면</b> Apps Script에서 배포를 보관 처리하면 링크가 닫힙니다. 스프레드시트 원본은 그대로 남습니다.</p>
+</div>
+
+<h2>준비 확인표</h2>
+<div class="card">
+  <ul class="check">
+    <li>스프레드시트 사본을 만들었다</li>
+    <li>웹 앱으로 배포하고 <code>/exec</code> 주소를 복사했다</li>
+    <li>앱에 그 주소를 연결했다</li>
+    <li><b>교사 PIN을 기본값에서 바꿨다</b></li>
+    <li>학생 명단을 저장했다</li>
+    <li>방학과제를 등록했다</li>
+    <li>QR을 인쇄하거나 화면에 띄울 준비를 했다</li>
+    <li>태블릿 한 대로 직접 들어가 기록해 보았다</li>
+  </ul>
+</div>
+
+<div class="foot">
+  막히는 곳이 있으면 어떤 화면에서 멈췄는지 알려주시면 도와드리겠습니다.
+</div>
+
+</div>
+</body>
+</html>
