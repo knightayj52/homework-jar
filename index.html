@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>방학과제 기록장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ── 토큰 ────────────────────────────────────────────── */
+:root{
+  --ink:#12303F;          /* 짙은 청록 잉크 — 테두리와 본문 */
+  --ink-soft:#5B7B8A;     /* 보조 텍스트 */
+  --paper:#E7F0F1;        /* 물빛 종이 바탕 */
+  --card:#FFFFFF;
+  --line:#C6DADE;
+  --line-soft:#DFEAEC;
+  --mark:#0E6E78;         /* 강조 */
+  --warn:#C4553F;
+  --gold:#E0A008;
+  --radius:14px;
+  --shadow:0 1px 0 var(--line), 0 6px 18px -12px rgba(18,48,63,.5);
+  --body:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --display:"Gowun Dodum","Pretendard Variable",sans-serif;
+  --hand:"Nanum Pen Script","Gowun Dodum",cursive;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--body);
+  color:var(--ink);
+  background:var(--paper);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255,255,255,.9) 0 22%, transparent 60%),
+    radial-gradient(circle at 88% 4%, rgba(255,255,255,.55) 0 18%, transparent 55%);
+  -webkit-text-size-adjust:100%;
+  line-height:1.55;
+}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px;border-radius:6px}
+
+/* ── 레이아웃 ────────────────────────────────────────── */
+.wrap{max-width:980px;margin:0 auto;padding:16px 16px 120px}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 0 18px;
+}
+.brand{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.brand h1{
+  font-family:var(--display);font-size:26px;font-weight:400;margin:0;letter-spacing:-.5px;
+}
+.brand .cls{
+  font-size:13px;color:var(--mark);background:#fff;border:1.5px solid var(--line);
+  padding:3px 10px;border-radius:999px;font-weight:600;
+}
+.ghost{
+  background:transparent;border:1.5px solid var(--line);color:var(--ink-soft);
+  padding:8px 14px;border-radius:999px;font-size:14px;font-weight:600;
+  min-height:40px;
+}
+.ghost:hover{border-color:var(--mark);color:var(--mark)}
+
+.card{
+  background:var(--card);border:1.5px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:20px;
+}
+.card + .card{margin-top:14px}
+.sec-title{
+  font-family:var(--display);font-size:19px;margin:0 0 4px;font-weight:400;
+}
+.sec-sub{margin:0 0 16px;font-size:14px;color:var(--ink-soft)}
+.hr{height:1px;background:var(--line-soft);border:0;margin:18px 0}
+
+/* ── 유리병 ──────────────────────────────────────────── */
+.jar{--fill:0%;--tint:#1F8A70;--ticks:10;display:flex;flex-direction:column;align-items:center}
+.jar-neck{
+  width:44%;height:8px;background:var(--card);
+  border:2px solid var(--ink);border-bottom:0;border-radius:6px 6px 0 0;
+}
+.jar-body{
+  position:relative;width:100%;flex:1;background:var(--card);
+  border:2px solid var(--ink);border-radius:6px 6px 15px 15px;overflow:hidden;
+}
+.jar-liquid{
+  position:absolute;left:0;right:0;bottom:0;height:var(--fill);
+  background:var(--tint);
+  transition:height .6s cubic-bezier(.22,1,.36,1);
+}
+.jar-liquid::after{
+  content:"";position:absolute;left:0;right:0;top:0;height:5px;
+  background:#fff;opacity:.4;
+}
+.jar-ticks{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(
+    to top, rgba(18,48,63,.3) 0 1px, transparent 1px calc(100% / var(--ticks)));
+}
+.jar.full .jar-body{border-color:var(--gold);box-shadow:0 0 0 3px rgba(224,160,8,.22)}
+.jar.full .jar-neck{border-color:var(--gold)}
+.jar--lg{width:84px;height:128px}
+.jar--md{width:54px;height:82px}
+.jar--xs{width:15px;height:24px}
+.jar--xs .jar-neck{height:4px;border-width:1.5px}
+.jar--xs .jar-body{border-width:1.5px;border-radius:3px 3px 6px 6px}
+.jar--xs .jar-ticks{display:none}
+.jar--xs.full .jar-body{box-shadow:none}
+
+/* ── 학생: 학번 고르기 ───────────────────────────────── */
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.pick{
+  background:var(--card);border:1.5px solid var(--line);border-radius:12px;
+  padding:12px 8px;min-height:74px;text-align:center;transition:transform .12s,border-color .12s;
+}
+.pick:hover{border-color:var(--mark);transform:translateY(-2px)}
+.pick .no{display:block;font-size:12px;color:var(--ink-soft);font-weight:700;letter-spacing:.5px}
+.pick .nm{display:block;font-family:var(--display);font-size:17px;margin-top:2px}
+.pick[data-done="1"]{background:#F1F8F5;border-color:#9DCFBB}
+.pick[data-done="1"] .no::after{content:" ✓";color:#1F8A70}
+
+/* ── 학생: 기록 카드 ─────────────────────────────────── */
+.task{
+  display:grid;grid-template-columns:84px 1fr;gap:18px;align-items:center;
+  padding:16px 0;border-bottom:1px dashed var(--line);
+}
+.task:last-of-type{border-bottom:0}
+.task-name{font-family:var(--display);font-size:20px;margin:0}
+.task-desc{margin:2px 0 0;font-size:13px;color:var(--ink-soft)}
+.stepper{display:flex;align-items:center;gap:12px;margin-top:12px}
+.step-btn{
+  width:52px;height:52px;border-radius:14px;border:2px solid var(--ink);
+  background:var(--card);font-size:26px;line-height:1;font-weight:700;
+  display:grid;place-items:center;transition:transform .1s,background .15s;
+}
+.step-btn:hover{background:var(--paper)}
+.step-btn:active{transform:scale(.93)}
+.step-btn[disabled]{opacity:.3;cursor:not-allowed}
+.step-val{
+  min-width:96px;text-align:center;font-size:15px;color:var(--ink-soft);
+}
+.step-val b{display:block;font-size:30px;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.badge-done{
+  display:inline-block;margin-left:8px;font-size:12px;font-weight:700;color:#8A6300;
+  background:#FFF3D0;border:1.5px solid #F0D389;border-radius:999px;padding:2px 9px;vertical-align:3px;
+}
+
+.note-label{font-size:14px;font-weight:600;margin-bottom:8px;display:block}
+textarea.note{
+  width:100%;min-height:96px;padding:14px 16px;border:1.5px solid var(--line);
+  border-radius:12px;background:#FCFEFE;resize:vertical;
+  font-family:var(--hand);font-size:26px;line-height:1.4;
+}
+textarea.note::placeholder{color:#A9C1C7}
+
+.submitbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:rgba(231,240,241,.94);backdrop-filter:blur(8px);
+  border-top:1.5px solid var(--line);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+}
+.submitbar-in{
+  max-width:980px;margin:0 auto;display:flex;align-items:center;gap:14px;justify-content:space-between;
+}
+.total{font-size:13px;color:var(--ink-soft)}
+.total b{font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums}
+.btn{
+  background:var(--mark);color:#fff;border:0;border-radius:999px;
+  padding:14px 30px;font-size:16px;font-weight:700;min-height:52px;
+  transition:filter .15s,transform .1s;
+}
+.btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.97)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btn--sm{padding:10px 20px;font-size:14px;min-height:42px}
+.btn--quiet{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn--danger{background:var(--warn)}
+
+/* ── 완료 화면 ───────────────────────────────────────── */
+.done-hero{text-align:center;padding:14px 0 6px}
+.done-hero .jar{margin:0 auto 18px}
+.done-msg{font-family:var(--hand);font-size:34px;line-height:1.3;margin:0 0 6px;color:var(--mark)}
+.done-sub{color:var(--ink-soft);font-size:14px;margin:0}
+.recap{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin-top:22px}
+.recap-item{text-align:center;width:74px}
+.recap-item .cap{font-size:12px;margin-top:6px;color:var(--ink-soft);line-height:1.3}
+
+/* ── 교사 ────────────────────────────────────────────── */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{
+  background:transparent;border:1.5px solid transparent;border-radius:999px;
+  padding:9px 16px;font-size:14px;font-weight:600;color:var(--ink-soft);min-height:42px;
+}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff}
+.tab:not([aria-selected="true"]):hover{border-color:var(--line);color:var(--ink)}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.stat{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px}
+.stat .k{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+.stat .v{font-family:var(--display);font-size:28px;line-height:1.2;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:15px;color:var(--ink-soft)}
+.stat--alert{border-color:var(--gold);background:#FFFBF0}
+
+.trow{display:grid;grid-template-columns:1fr;gap:6px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.trow:last-child{border-bottom:0}
+.trow-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.trow-name{font-family:var(--display);font-size:17px}
+.trow-fig{font-size:13px;color:var(--ink-soft);white-space:nowrap}
+.trow-fig b{font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+.bar{
+  position:relative;height:22px;border:1.5px solid var(--ink);border-radius:6px;
+  background:var(--card);overflow:hidden;
+}
+.bar-fill{position:absolute;inset:0 auto 0 0;width:var(--fill);background:var(--tint);transition:width .6s cubic-bezier(.22,1,.36,1)}
+.bar-ticks{
+  position:absolute;inset:0;
+  background-image:repeating-linear-gradient(
+    to right, rgba(18,48,63,.3) 0 1px, transparent 1px calc(100% / var(--ticks)));
+}
+
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px}
+.scard{
+  position:relative;text-align:left;background:var(--card);border:1.5px solid var(--line);
+  border-radius:12px;padding:12px;transition:transform .12s,border-color .12s;
+}
+.scard:hover{transform:translateY(-2px);border-color:var(--mark)}
+.scard.absent{background:repeating-linear-gradient(135deg,#F7FAFA 0 8px,#EFF5F6 8px 16px);border-style:dashed}
+.scard .who{display:flex;align-items:baseline;gap:6px}
+.scard .who .no{font-size:11.5px;color:var(--ink-soft);font-weight:700}
+.scard .who .nm{font-family:var(--display);font-size:16px}
+.scard .rate{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:2px}
+.scard .rate span{font-size:13px;font-weight:600;color:var(--ink-soft)}
+.scard .mini{display:flex;gap:5px;margin-top:9px;min-height:24px;align-items:flex-end}
+.scard .absent-txt{font-size:13px;color:var(--ink-soft);margin-top:6px}
+.newdot{
+  position:absolute;top:9px;right:9px;width:9px;height:9px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 0 3px rgba(224,160,8,.25);
+}
+
+.toolrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden;background:#fff}
+.seg button{background:transparent;border:0;padding:8px 14px;font-size:13px;font-weight:600;color:var(--ink-soft);min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.spacer{flex:1}
+
+/* 폼 */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:6px}
+.field input[type=text],.field input[type=number],.field input[type=date],.field input[type=password],.field textarea,.field select{
+  width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:10px;background:#FCFEFE;min-height:46px;
+}
+.field .hint{font-size:12.5px;color:var(--ink-soft);margin-top:5px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.editrow{
+  display:grid;grid-template-columns:1fr 92px 84px 52px 44px;gap:8px;align-items:center;
+  padding:10px;border:1.5px solid var(--line-soft);border-radius:12px;margin-bottom:8px;background:#FCFEFE;
+}
+.editrow input{width:100%;padding:9px 11px;border:1.5px solid var(--line);border-radius:9px;min-height:44px;background:#fff}
+.editrow input[type=color]{padding:3px;height:44px}
+.iconbtn{
+  width:44px;height:44px;border-radius:10px;border:1.5px solid var(--line);background:#fff;
+  display:grid;place-items:center;font-size:17px;color:var(--warn);
+}
+.iconbtn:hover{border-color:var(--warn)}
+
+table.list{width:100%;border-collapse:collapse;font-size:14px}
+table.list th,table.list td{padding:9px 10px;border-bottom:1px solid var(--line-soft);text-align:left}
+table.list th{font-size:12.5px;color:var(--ink-soft);font-weight:700}
+table.list td.num{font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+
+/* 모달 */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(18,48,63,.45);z-index:60;
+  display:grid;place-items:center;padding:16px;
+}
+.modal{
+  background:var(--card);border-radius:18px;border:1.5px solid var(--line);
+  max-width:560px;width:100%;max-height:86vh;overflow:auto;padding:22px;
+  box-shadow:0 24px 60px -20px rgba(18,48,63,.6);
+}
+.modal h3{font-family:var(--display);font-size:21px;margin:0 0 2px;font-weight:400}
+.modal .meta{font-size:13px;color:var(--ink-soft);margin:0 0 16px}
+.jarline{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.jarline .unit{width:56px;text-align:center}
+.jarline .cap{font-size:11.5px;color:var(--ink-soft);margin-top:6px;line-height:1.35}
+.quote{
+  font-family:var(--hand);font-size:25px;line-height:1.4;background:#FBFDFD;
+  border-left:4px solid var(--mark);padding:12px 16px;border-radius:0 10px 10px 0;margin:14px 0 0;
+}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+/* 안내 */
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:80;
+  background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;
+  box-shadow:0 12px 30px -12px rgba(18,48,63,.8);max-width:90vw;text-align:center;
+}
+.toast.err{background:var(--warn)}
+.empty{text-align:center;padding:34px 16px;color:var(--ink-soft);font-size:14.5px}
+.empty .big{font-family:var(--display);font-size:19px;color:var(--ink);display:block;margin-bottom:6px}
+.loading{text-align:center;padding:50px 16px;color:var(--ink-soft)}
+
+@media (max-width:560px){
+  .wrap{padding:12px 12px 130px}
+  .brand h1{font-size:22px}
+  .task{grid-template-columns:64px 1fr;gap:14px}
+  .jar--lg{width:64px;height:100px}
+  .row2{grid-template-columns:1fr}
+  .editrow{grid-template-columns:1fr 1fr;gap:8px}
+  .editrow input[type=color]{grid-column:1}
+  .editrow .iconbtn{justify-self:end}
+  .submitbar-in{flex-direction:column;align-items:stretch;gap:10px}
+  .submitbar .btn{width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="loading">불러오는 중…</div></div>
+<script>
+/* ══════════════════════════════════════════════════════
+   설정 — 배포한 Apps Script 웹 앱 주소를 아래에 붙여넣으세요.
+   비워 두면 앱 첫 화면에서 직접 입력할 수 있습니다.
+   ══════════════════════════════════════════════════════ */
+const APP_URL = "";
+
+/* ── 통신 ────────────────────────────────────────────── */
+function apiUrl(){ return APP_URL || localStorage.getItem('vac_api') || ''; }
+
+async function api(action, payload){
+  const url = apiUrl();
+  if(!url) throw new Error('앱 주소가 설정되지 않았습니다.');
+  const body = JSON.stringify(Object.assign({action}, payload||{}));
+  try{
+    const res = await fetch(url, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body
+    });
+    const json = await res.json();
+    if(!json.ok) throw mkErr(json.error || '처리하지 못했습니다.');
+    return json.data;
+  }catch(err){
+    if(err && err.__api) throw err;
+    return jsonp(url, action, payload); // fetch가 막히면 우회 경로로 재시도
+  }
+}
+
+function jsonp(url, action, payload){
+  return new Promise((resolve, reject)=>{
+    const cb = 'vac_cb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    const timer = setTimeout(()=>{ done(); reject(mkErr('서버에 연결하지 못했습니다. 주소와 인터넷 상태를 확인해 주세요.')); }, 20000);
+    function done(){ clearTimeout(timer); delete window[cb]; s.remove(); }
+    window[cb] = (json)=>{
+      done();
+      if(json && json.ok) resolve(json.data);
+      else reject(mkErr(json && json.error ? json.error : '처리하지 못했습니다.'));
+    };
+    s.onerror = ()=>{ done(); reject(mkErr('서버에 연결하지 못했습니다.')); };
+    s.src = url + (url.includes('?')?'&':'?') + 'callback=' + cb
+          + '&q=' + encodeURIComponent(JSON.stringify(Object.assign({action}, payload||{})));
+    document.body.appendChild(s);
+  });
+}
+function mkErr(m){ const e = new Error(m); e.__api = true; return e; }
+
+/* ── 상태 ────────────────────────────────────────────── */
+const S = {
+  view:'loading',
+  boot:null,          // {className, notice, deadline, tasks, students}
+  me:null,            // {sid,name,counts,note,submittedAt}
+  draft:{},           // 학생이 입력 중인 값
+  note:'',
+  pin:'',
+  dash:null,
+  tab:'status',
+  sort:'sid',
+  modalSid:null,
+  editTasks:null,
+  editStudents:null
+};
+
+/* ── 유틸 ────────────────────────────────────────────── */
+const $ = (sel, el)=> (el||document).querySelector(sel);
+const esc = (s)=> String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp = (n,a,b)=> Math.max(a, Math.min(b, n));
+
+function tickCount(goal){
+  if(goal <= 20) return Math.max(1, goal);
+  return Math.max(1, Math.round(goal / Math.ceil(goal/20)));
+}
+
+function jarHTML(pct, tint, goal, size){
+  const full = pct >= 100;
+  return `<div class="jar jar--${size}${full?' full':''}" style="--fill:${clamp(pct,0,100)}%;--tint:${tint};--ticks:${tickCount(goal)}">
+    <div class="jar-neck"></div>
+    <div class="jar-body"><div class="jar-liquid"></div><div class="jar-ticks"></div></div>
+  </div>`;
+}
+
+function overallRate(counts, tasks){
+  let g=0, d=0;
+  tasks.forEach(t=>{ g += t.goal; d += clamp(Number(counts[t.id])||0, 0, t.goal); });
+  return g ? Math.round(d/g*100) : 0;
+}
+
+function fmtTime(ms){
+  if(!ms) return '—';
+  const d = new Date(ms);
+  return `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+let toastTimer;
+function toast(msg, isErr){
+  clearTimeout(toastTimer);
+  let el = $('#toast');
+  if(!el){ el = document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.className = 'toast' + (isErr?' err':'');
+  el.textContent = msg;
+  toastTimer = setTimeout(()=>el.remove(), 2800);
+}
+
+function busy(btn, on, label){
+  if(!btn) return;
+  if(on){ btn.dataset.label = btn.textContent; btn.textContent = label||'저장하는 중…'; btn.disabled = true; }
+  else { btn.textContent = btn.dataset.label || btn.textContent; btn.disabled = false; }
+}
+
+/* ── 시작 ────────────────────────────────────────────── */
+async function start(){
+  if(!apiUrl()){ S.view='setup'; return render(); }
+  try{
+    S.boot = await api('bootstrap');
+    S.view = 'pick';
+  }catch(err){
+    S.view = 'setup';
+    S.setupError = err.message;
+  }
+  render();
+}
+
+/* ── 렌더 ────────────────────────────────────────────── */
+function render(){
+  const app = $('#app');
+  const views = {
+    setup:viewSetup, pick:viewPick, record:viewRecord, done:viewDone,
+    login:viewLogin, teacher:viewTeacher
+  };
+  app.innerHTML = (views[S.view] || viewPick)();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function header(sub, right){
+  return `<div class="topbar">
+    <div class="brand">
+      <h1>방학과제 기록장</h1>
+      ${S.boot ? `<span class="cls">${esc(S.boot.className)}</span>`:''}
+      ${sub ? `<span class="cls">${esc(sub)}</span>`:''}
+    </div>
+    <div>${right||''}</div>
+  </div>`;
+}
+
+/* ── 첫 설정 ─────────────────────────────────────────── */
+function viewSetup(){
+  return `${header('', '')}
+  <div class="card">
+    <h2 class="sec-title">앱 주소를 연결해 주세요</h2>
+    <p class="sec-sub">Apps Script에서 웹 앱으로 배포한 뒤 받은 주소를 붙여넣으면 됩니다. 이 태블릿에만 저장되고, 한 번만 하면 됩니다.</p>
+    ${S.setupError ? `<p class="sec-sub" style="color:var(--warn)">${esc(S.setupError)}</p>`:''}
+    <div class="field">
+      <label for="apiurl">웹 앱 주소</label>
+      <input type="text" id="apiurl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(localStorage.getItem('vac_api')||'')}">
+      <p class="hint">주소는 /exec 로 끝나야 합니다.</p>
+    </div>
+    <button class="btn" onclick="saveUrl(this)">연결하기</button>
+  </div>`;
+}
+
+async function saveUrl(btn){
+  const v = $('#apiurl').value.trim();
+  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){
+    return toast('/exec 로 끝나는 웹 앱 주소를 넣어 주세요.', true);
+  }
+  localStorage.setItem('vac_api', v);
+  busy(btn, true, '연결하는 중…');
+  try{
+    S.boot = await api('bootstrap');
+    S.setupError = null;
+    S.view = 'pick';
+    render();
+    toast('연결했습니다.');
+  }catch(err){
+    busy(btn, false);
+    toast(err.message, true);
+  }
+}
+
+/* ── 학생: 학번 고르기 ───────────────────────────────── */
+function viewPick(){
+  const b = S.boot;
+  if(!b) return `<div class="loading">불러오는 중…</div>`;
+  const teacherBtn = `<button class="ghost" onclick="S.view='login';render()">선생님 화면</button>`;
+
+  if(!b.students.length){
+    return `${header('', teacherBtn)}
+      <div class="card"><div class="empty">
+        <span class="big">아직 학생 명단이 없습니다</span>
+        선생님 화면에서 학생 명단을 먼저 등록해 주세요.
+      </div></div>`;
+  }
+
+  const cards = b.students.map(s=>`
+    <button class="pick" onclick="enter('${esc(s.sid)}')">
+      <span class="no">${esc(s.sid)}번</span>
+      <span class="nm">${esc(s.name)}</span>
+    </button>`).join('');
+
+  return `${header('', teacherBtn)}
+  <div class="card">
+    <h2 class="sec-title">내 번호를 눌러 주세요</h2>
+    <p class="sec-sub">${esc(b.notice || '방학 동안 해 온 과제를 기록해 봅시다.')}${b.deadline ? ` · 기록 마감 ${esc(b.deadline)}`:''}</p>
+    <div class="pick-grid">${cards}</div>
+  </div>`;
+}
+
+async function enter(sid){
+  try{
+    const me = await api('loadStudent', {sid});
+    if(!confirm(`${sid}번 ${me.name} 맞나요?`)) return;
+    S.me = me;
+    S.draft = {};
+    S.boot.tasks.forEach(t=>{ S.draft[t.id] = clamp(Number(me.counts[t.id])||0, 0, t.goal); });
+    S.note = me.note || '';
+    S.view = 'record';
+    render();
+  }catch(err){ toast(err.message, true); }
+}
+
+/* ── 학생: 기록하기 ──────────────────────────────────── */
+function viewRecord(){
+  const b = S.boot, me = S.me;
+  const rows = b.tasks.map(t=>{
+    const n = S.draft[t.id] || 0;
+    const pct = Math.round(n / t.goal * 100);
+    return `<div class="task" data-task="${esc(t.id)}">
+      ${jarHTML(pct, t.color, t.goal, 'lg')}
+      <div>
+        <h3 class="task-name">${esc(t.name)}${n>=t.goal?'<span class="badge-done">다 했어요</span>':''}</h3>
+        ${t.desc ? `<p class="task-desc">${esc(t.desc)}</p>`:''}
+        <div class="stepper">
+          <button class="step-btn" onclick="bump('${t.id}',-1)" ${n<=0?'disabled':''} aria-label="${esc(t.name)} 하나 줄이기">−</button>
+          <div class="step-val"><b>${n}</b>${esc(t.unit)} / 목표 ${t.goal}${esc(t.unit)}</div>
+          <button class="step-btn" onclick="bump('${t.id}',1)" ${n>=t.goal?'disabled':''} aria-label="${esc(t.name)} 하나 늘리기">＋</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const rate = overallRate(S.draft, b.tasks);
+
+  return `${header(`${me.sid}번 ${me.name}`, `<button class="ghost" onclick="leave()">나가기</button>`)}
+  <div class="card">
+    <h2 class="sec-title">해 온 만큼 눌러서 채워 주세요</h2>
+    <p class="sec-sub">병에 그어진 눈금 한 칸이 과제 하나입니다. 솔직하게 적을수록 좋아요.</p>
+    ${rows}
+  </div>
+  <div class="card">
+    <label class="note-label" for="note">방학을 돌아보며 한마디</label>
+    <textarea id="note" class="note" placeholder="가장 기억에 남는 과제는…" oninput="S.note=this.value">${esc(S.note)}</textarea>
+  </div>
+  <div class="submitbar"><div class="submitbar-in">
+    <div class="total">지금까지 채운 정도 <b>${rate}%</b></div>
+    <button class="btn" onclick="submitRecord(this)">${me.submittedAt ? '기록 고쳐서 다시 내기' : '기록 제출하기'}</button>
+  </div></div>`;
+}
+
+function bump(taskId, delta){
+  const t = S.boot.tasks.find(x=>x.id===taskId);
+  const v = clamp((S.draft[taskId]||0) + delta, 0, t.goal);
+  if(v === S.draft[taskId]) return;
+  S.draft[taskId] = v;
+
+  // 전체를 다시 그리면 물이 차오르는 움직임이 끊기므로 바뀐 부분만 손봄
+  const el = document.querySelector('.task[data-task="'+taskId+'"]');
+  if(!el) return render();
+
+  const jar = el.querySelector('.jar');
+  jar.style.setProperty('--fill', Math.round(v / t.goal * 100) + '%');
+  jar.classList.toggle('full', v >= t.goal);
+
+  el.querySelector('.step-val b').textContent = v;
+  const btns = el.querySelectorAll('.step-btn');
+  btns[0].disabled = v <= 0;
+  btns[1].disabled = v >= t.goal;
+
+  const name = el.querySelector('.task-name');
+  const badge = name.querySelector('.badge-done');
+  if(v >= t.goal && !badge) name.insertAdjacentHTML('beforeend', '<span class="badge-done">다 했어요</span>');
+  if(v < t.goal && badge) badge.remove();
+
+  const total = document.querySelector('.total b');
+  if(total) total.textContent = overallRate(S.draft, S.boot.tasks) + '%';
+}
+
+function leave(){
+  if(!confirm('제출하지 않고 나가면 지금 입력한 내용은 저장되지 않습니다. 나갈까요?')) return;
+  S.me = null; S.draft = {}; S.note = '';
+  S.view = 'pick'; render();
+}
+
+async function submitRecord(btn){
+  busy(btn, true, '제출하는 중…');
+  try{
+    const res = await api('submit', {sid:S.me.sid, counts:S.draft, note:S.note});
+    S.me.submittedAt = res.savedAt;
+    S.me.counts = Object.assign({}, S.draft);
+    S.view = 'done';
+    render();
+  }catch(err){
+    busy(btn, false);
+    toast(err.message, true);
+  }
+}
+
+/* ── 학생: 제출 완료 ─────────────────────────────────── */
+function viewDone(){
+  const b = S.boot, me = S.me;
+  const rate = overallRate(S.draft, b.tasks);
+  const doneCount = b.tasks.filter(t=>(S.draft[t.id]||0) >= t.goal).length;
+
+  let msg;
+  if(rate >= 100)      msg = '전부 다 채웠구나! 대단해요';
+  else if(rate >= 70)  msg = '방학 동안 참 부지런했네요';
+  else if(rate >= 40)  msg = '꾸준히 해낸 만큼이 남았어요';
+  else                 msg = '솔직하게 적어 줘서 고마워요';
+
+  const jars = b.tasks.map(t=>{
+    const n = S.draft[t.id]||0;
+    return `<div class="recap-item">
+      ${jarHTML(Math.round(n/t.goal*100), t.color, t.goal, 'md')}
+      <div class="cap">${esc(t.name)}<br>${n}/${t.goal}${esc(t.unit)}</div>
+    </div>`;
+  }).join('');
+
+  return `${header(`${me.sid}번 ${me.name}`, '')}
+  <div class="card">
+    <div class="done-hero">
+      ${jarHTML(rate, '#0E6E78', 10, 'lg')}
+      <p class="done-msg">${msg}</p>
+      <p class="done-sub">전체 ${rate}% · 목표를 다 채운 과제 ${doneCount}개 · ${fmtTime(me.submittedAt)} 제출</p>
+    </div>
+    <div class="recap">${jars}</div>
+    <hr class="hr">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+      <button class="btn btn--sm btn--quiet" onclick="S.view='record';render()">기록 고치기</button>
+      <button class="btn btn--sm" onclick="S.me=null;S.draft={};S.note='';S.view='pick';render()">다음 사람 차례</button>
+    </div>
+  </div>`;
+}
+
+/* ── 교사: 로그인 ────────────────────────────────────── */
+function viewLogin(){
+  return `${header('', `<button class="ghost" onclick="S.view='pick';render()">학생 화면</button>`)}
+  <div class="card" style="max-width:420px;margin:0 auto">
+    <h2 class="sec-title">선생님 화면</h2>
+    <p class="sec-sub">PIN을 입력하면 우리 반 기록 현황을 볼 수 있습니다.</p>
+    <div class="field">
+      <label for="pin">교사 PIN</label>
+      <input type="password" id="pin" inputmode="numeric" autocomplete="off" placeholder="숫자 4자리"
+             onkeydown="if(event.key==='Enter')login(document.getElementById('loginbtn'))">
+      <p class="hint">처음 설치했다면 2026입니다. 들어간 뒤 설정에서 바꿔 주세요.</p>
+    </div>
+    <button class="btn" id="loginbtn" onclick="login(this)">들어가기</button>
+  </div>`;
+}
+
+async function login(btn){
+  const pin = $('#pin').value.trim();
+  if(!pin) return toast('PIN을 입력해 주세요.', true);
+  busy(btn, true, '확인하는 중…');
+  try{
+    S.pin = pin;
+    S.dash = await api('dashboard', {pin});
+    S.tab = 'status';
+    S.view = 'teacher';
+    render();
+  }catch(err){
+    S.pin = '';
+    busy(btn, false);
+    toast(err.message, true);
+  }
+}
+
+async function refreshDash(silent){
+  try{
+    S.dash = await api('dashboard', {pin:S.pin});
+    if(!silent) toast('현황을 새로 불러왔습니다.');
+    render();
+  }catch(err){ toast(err.message, true); }
+}
+
+/* ── 교사: 화면 ──────────────────────────────────────── */
+function viewTeacher(){
+  const tabs = [['status','현황'],['tasks','과제 설정'],['roster','학생 명단'],['settings','기본 설정']];
+  const bar = tabs.map(([k,label])=>{
+    const alert = (k==='status' && S.dash.summary.newCount) ? ` (${S.dash.summary.newCount})` : '';
+    return `<button class="tab" role="tab" aria-selected="${S.tab===k}" onclick="goTab('${k}')">${label}${alert}</button>`;
+  }).join('');
+
+  const panes = {status:paneStatus, tasks:paneTasks, roster:paneRoster, settings:paneSettings};
+  return `${header('선생님', `<button class="ghost" onclick="S.pin='';S.dash=null;S.view='pick';render()">나가기</button>`)}
+    <div class="tabs" role="tablist">${bar}</div>
+    ${panes[S.tab]()}
+    ${S.modalSid ? modalStudent() : ''}`;
+}
+
+function goTab(k){
+  S.tab = k;
+  if(k==='tasks')  S.editTasks = S.dash.tasks.map(t=>Object.assign({}, t));
+  if(k==='roster') S.editStudents = null;
+  render();
+}
+
+/* 현황 */
+function paneStatus(){
+  const d = S.dash, sum = d.summary;
+  if(!d.rows.length){
+    return `<div class="card"><div class="empty">
+      <span class="big">학생 명단이 비어 있습니다</span>
+      [학생 명단] 탭에서 우리 반 학생을 등록하면 현황이 나타납니다.
+    </div></div>`;
+  }
+
+  const stats = `<div class="stats">
+    <div class="stat"><div class="k">기록 제출</div><div class="v">${sum.submitted}<small> / ${sum.total}명</small></div></div>
+    <div class="stat"><div class="k">반 평균 달성률</div><div class="v">${sum.avgRate}<small>%</small></div></div>
+    <div class="stat${sum.newCount?' stat--alert':''}"><div class="k">확인 안 한 새 기록</div><div class="v">${sum.newCount}<small>건</small></div></div>
+    <div class="stat"><div class="k">기록 마감</div><div class="v" style="font-size:20px">${esc(d.deadline || '지정 안 함')}</div></div>
+  </div>`;
+
+  const taskRows = d.tasks.map(t=>{
+    const p = d.perTask.find(x=>x.id===t.id) || {avg:0,avgRate:0,completed:0,responded:0};
+    return `<div class="trow">
+      <div class="trow-head">
+        <span class="trow-name">${esc(t.name)}</span>
+        <span class="trow-fig">평균 <b>${p.avg}</b>${esc(t.unit)} · 목표 달성 ${p.completed}명</span>
+      </div>
+      <div class="bar" style="--fill:${p.avgRate}%;--tint:${t.color};--ticks:${tickCount(t.goal)}">
+        <div class="bar-fill"></div><div class="bar-ticks"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const rows = sortedRows();
+  const cards = rows.map(r=>{
+    if(!r.submitted){
+      return `<button class="scard absent" onclick="openStudent('${esc(r.sid)}')">
+        <div class="who"><span class="no">${esc(r.sid)}</span><span class="nm">${esc(r.name)}</span></div>
+        <div class="absent-txt">아직 기록 전</div>
+      </button>`;
+    }
+    const mini = d.tasks.map(t=>{
+      const n = clamp(Number(r.counts[t.id])||0, 0, t.goal);
+      return jarHTML(Math.round(n/t.goal*100), t.color, t.goal, 'xs');
+    }).join('');
+    return `<button class="scard" onclick="openStudent('${esc(r.sid)}')">
+      ${r.isNew ? '<span class="newdot" title="새 기록"></span>':''}
+      <div class="who"><span class="no">${esc(r.sid)}</span><span class="nm">${esc(r.name)}</span></div>
+      <div class="rate">${r.rate}<span>%</span></div>
+      <div class="mini">${mini}</div>
+    </button>`;
+  }).join('');
+
+  const sorts = [['sid','번호순'],['low','달성률 낮은 순'],['none','미제출 먼저']];
+  const seg = sorts.map(([k,l])=>`<button aria-pressed="${S.sort===k}" onclick="S.sort='${k}';render()">${l}</button>`).join('');
+
+  return `${stats}
+  <div class="card" style="margin-top:14px">
+    <h2 class="sec-title">과제별 반 평균</h2>
+    <p class="sec-sub">막대 눈금 한 칸이 목표 하나입니다. 기록을 낸 ${sum.submitted}명 기준입니다.</p>
+    ${d.tasks.length ? taskRows : '<div class="empty">등록된 과제가 없습니다.</div>'}
+  </div>
+  <div class="card">
+    <div class="toolrow">
+      <div class="seg">${seg}</div>
+      <div class="spacer"></div>
+      ${sum.newCount ? `<button class="btn btn--sm btn--quiet" onclick="markSeen(this)">새 기록 확인 완료</button>`:''}
+      <button class="btn btn--sm btn--quiet" onclick="refreshDash()">새로고침</button>
+      <button class="btn btn--sm btn--quiet" onclick="exportCsv()">CSV 내보내기</button>
+    </div>
+    <h2 class="sec-title">학생별 현황</h2>
+    <p class="sec-sub">이름을 누르면 과제별 기록과 방학 소감을 볼 수 있습니다.</p>
+    <div class="roster">${cards}</div>
+  </div>`;
+}
+
+function sortedRows(){
+  const rows = S.dash.rows.slice();
+  if(S.sort === 'low'){
+    rows.sort((a,b)=> (a.submitted===b.submitted) ? a.rate-b.rate : (a.submitted?1:-1));
+  }else if(S.sort === 'none'){
+    rows.sort((a,b)=> (a.submitted===b.submitted) ? nsid(a)-nsid(b) : (a.submitted?1:-1));
+  }else{
+    rows.sort((a,b)=> nsid(a)-nsid(b));
+  }
+  return rows;
+}
+function nsid(r){ const n = parseInt(r.sid,10); return isNaN(n) ? 9999 : n; }
+
+async function markSeen(btn){
+  busy(btn, true, '처리하는 중…');
+  try{ await api('markSeen', {pin:S.pin}); await refreshDash(true); toast('새 기록을 모두 확인 처리했습니다.'); }
+  catch(err){ busy(btn,false); toast(err.message, true); }
+}
+
+function openStudent(sid){ S.modalSid = sid; render(); }
+function closeModal(){ S.modalSid = null; render(); }
+
+function modalStudent(){
+  const d = S.dash;
+  const r = d.rows.find(x=>x.sid===S.modalSid);
+  if(!r) return '';
+  const jars = d.tasks.map(t=>{
+    const n = clamp(Number(r.counts[t.id])||0, 0, t.goal);
+    return `<div class="unit">
+      ${jarHTML(Math.round(n/t.goal*100), t.color, t.goal, 'md')}
+      <div class="cap">${esc(t.name)}<br>${n}/${t.goal}${esc(t.unit)}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+    <div class="modal" role="dialog" aria-modal="true">
+      <h3>${esc(r.sid)}번 ${esc(r.name)}</h3>
+      <p class="meta">${r.submitted
+        ? `달성률 ${r.rate}% · 목표를 다 채운 과제 ${r.completeTasks}개 · ${fmtTime(r.submittedAt)} 제출${r.times>1?` (${r.times}번째 수정)`:''}`
+        : '아직 기록을 내지 않았습니다.'}</p>
+      ${r.submitted ? `<div class="jarline">${jars}</div>` : '<div class="empty">학생이 기록을 제출하면 여기에 나타납니다.</div>'}
+      ${r.note ? `<p class="quote">${esc(r.note)}</p>`:''}
+      <div class="modal-foot"><button class="btn btn--sm btn--quiet" onclick="closeModal()">닫기</button></div>
+    </div>
+  </div>`;
+}
+
+function exportCsv(){
+  const d = S.dash;
+  const head = ['학번','이름','제출시각','달성률(%)','목표달성과제수']
+    .concat(d.tasks.map(t=>`${t.name}(${t.goal}${t.unit})`))
+    .concat(['소감']);
+  const lines = [head];
+  sortedRows().forEach(r=>{
+    lines.push([
+      r.sid, r.name, r.submitted ? fmtTime(r.submittedAt) : '미제출',
+      r.submitted ? r.rate : '', r.submitted ? r.completeTasks : ''
+    ].concat(d.tasks.map(t=> r.submitted ? clamp(Number(r.counts[t.id])||0,0,t.goal) : ''))
+     .concat([r.note||'']));
+  });
+  const csv = '\uFEFF' + lines.map(row=>row.map(c=>{
+    const s = String(c==null?'':c);
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+  }).join(',')).join('\r\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `방학과제_${d.className}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast('CSV 파일을 내려받았습니다.');
+}
+
+/* 과제 설정 */
+function paneTasks(){
+  const rows = S.editTasks.map((t,i)=>`
+    <div class="editrow">
+      <input type="text"   value="${esc(t.name)}" placeholder="과제 이름" oninput="S.editTasks[${i}].name=this.value">
+      <input type="number" value="${t.goal}" min="1" max="365" placeholder="목표" oninput="S.editTasks[${i}].goal=this.value">
+      <input type="text"   value="${esc(t.unit)}" placeholder="단위" oninput="S.editTasks[${i}].unit=this.value">
+      <input type="color"  value="${esc(t.color)}" oninput="S.editTasks[${i}].color=this.value" aria-label="색">
+      <button class="iconbtn" onclick="removeTask(${i})" aria-label="이 과제 지우기">✕</button>
+    </div>`).join('');
+
+  return `<div class="card">
+    <h2 class="sec-title">방학과제 만들기</h2>
+    <p class="sec-sub">과제 이름, 목표 수량, 단위(권·회·일)를 정하면 학생 화면에 병으로 나타납니다. 목표 수량이 곧 병의 눈금 개수입니다.</p>
+    ${rows || '<div class="empty">과제를 추가해 주세요.</div>'}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn--sm btn--quiet" onclick="addTask()">＋ 과제 추가</button>
+      <div class="spacer"></div>
+      <button class="btn btn--sm" onclick="saveTasks(this)">과제 저장</button>
+    </div>
+    <p class="hint" style="margin-top:12px;font-size:12.5px;color:var(--ink-soft)">
+      이미 기록이 있는 과제를 지우면 그 기록은 현황에 나타나지 않습니다. 학기 중에는 이름·색만 고치는 편이 안전합니다.</p>
+  </div>`;
+}
+
+function addTask(){
+  const palette = ['#1F8A70','#F2A03D','#4C7DE0','#C25E9B','#7A57D1','#E0574F','#0E6E78','#8AA829'];
+  const id = 't' + Date.now().toString(36);
+  S.editTasks.push({id, name:'', goal:10, unit:'회', color:palette[S.editTasks.length % palette.length], desc:''});
+  render();
+}
+function removeTask(i){
+  if(!confirm(`"${S.editTasks[i].name || '이름 없는 과제'}"를 목록에서 지울까요?`)) return;
+  S.editTasks.splice(i,1); render();
+}
+async function saveTasks(btn){
+  const tasks = S.editTasks.map(t=>Object.assign({}, t, {goal:parseInt(t.goal,10)||1}));
+  if(!tasks.length) return toast('과제를 최소 1개는 남겨 주세요.', true);
+  if(tasks.some(t=>!String(t.name).trim())) return toast('이름이 비어 있는 과제가 있습니다.', true);
+  busy(btn, true);
+  try{
+    await api('saveTasks', {pin:S.pin, tasks});
+    S.boot = await api('bootstrap');
+    await refreshDash(true);
+    S.editTasks = S.dash.tasks.map(t=>Object.assign({}, t));
+    render();
+    toast('과제를 저장했습니다.');
+  }catch(err){ busy(btn,false); toast(err.message, true); }
+}
+
+/* 학생 명단 */
+function paneRoster(){
+  const cur = S.dash.rows;
+  const table = cur.length ? `<table class="list">
+    <thead><tr><th style="width:80px">학번</th><th>이름</th><th style="width:110px">기록</th></tr></thead>
+    <tbody>${cur.slice().sort((a,b)=>nsid(a)-nsid(b)).map(r=>
+      `<tr><td class="num">${esc(r.sid)}</td><td>${esc(r.name)}</td><td class="num">${r.submitted?`${r.rate}%`:'미제출'}</td></tr>`
+    ).join('')}</tbody></table>` : '<div class="empty">등록된 학생이 없습니다.</div>';
+
+  const preset = S.editStudents !== null ? S.editStudents
+    : cur.slice().sort((a,b)=>nsid(a)-nsid(b)).map(r=>`${r.sid} ${r.name}`).join('\n');
+
+  return `<div class="card">
+    <h2 class="sec-title">지금 명단</h2>
+    <p class="sec-sub">모두 ${cur.length}명</p>
+    ${table}
+  </div>
+  <div class="card">
+    <h2 class="sec-title">명단 새로 등록하기</h2>
+    <p class="sec-sub">한 줄에 한 명씩, 학번과 이름을 띄어쓰기로 구분해 적어 주세요. 나이스에서 복사해 붙여넣어도 됩니다.</p>
+    <div class="field">
+      <textarea rows="10" style="font-family:var(--body);font-size:15px"
+        oninput="S.editStudents=this.value" placeholder="1 김민준&#10;2 이서연&#10;3 박도윤">${esc(preset)}</textarea>
+      <p class="hint">저장하면 기존 명단을 이 내용으로 바꿉니다. 학번이 같으면 기존 기록은 그대로 이어집니다.</p>
+    </div>
+    <button class="btn btn--sm" onclick="saveStudents(this)">명단 저장</button>
+  </div>`;
+}
+
+async function saveStudents(btn){
+  const raw = S.editStudents;
+  if(raw === null || raw === undefined) return toast('바꿀 내용을 입력해 주세요.', true);
+  const students = [];
+  const seen = {};
+  raw.split(/\r?\n/).forEach(line=>{
+    const s = line.trim();
+    if(!s) return;
+    const m = s.match(/^(\S+)[\s,\t]+(.+)$/);
+    if(!m) return;
+    const sid = m[1].replace(/번$/,'').trim();
+    if(seen[sid]) return;
+    seen[sid] = 1;
+    students.push({sid, name:m[2].trim()});
+  });
+  if(!students.length) return toast('"1 김민준" 처럼 학번과 이름을 함께 적어 주세요.', true);
+  if(!confirm(`${students.length}명으로 명단을 바꿉니다. 계속할까요?`)) return;
+  busy(btn, true);
+  try{
+    await api('saveStudents', {pin:S.pin, students});
+    S.boot = await api('bootstrap');
+    S.editStudents = null;
+    await refreshDash(true);
+    toast(`${students.length}명을 저장했습니다.`);
+  }catch(err){ busy(btn,false); toast(err.message, true); }
+}
+
+/* 기본 설정 */
+function paneSettings(){
+  const d = S.dash;
+  return `<div class="card">
+    <h2 class="sec-title">기본 설정</h2>
+    <p class="sec-sub">학생 첫 화면에 보이는 내용과 교사 PIN을 바꿉니다.</p>
+    <div class="row2">
+      <div class="field">
+        <label for="cls">반 이름</label>
+        <input type="text" id="cls" value="${esc(d.className)}">
+      </div>
+      <div class="field">
+        <label for="dl">기록 마감일</label>
+        <input type="date" id="dl" value="${esc(d.deadline)}">
+      </div>
+    </div>
+    <div class="field">
+      <label for="notice">학생에게 보여 줄 안내</label>
+      <input type="text" id="notice" value="${esc(d.notice)}" placeholder="방학 동안 해 온 과제를 솔직하게 기록해 주세요.">
+    </div>
+    <div class="field">
+      <label for="newpin">새 교사 PIN</label>
+      <input type="password" id="newpin" inputmode="numeric" autocomplete="off" placeholder="바꾸지 않으려면 비워 두세요">
+      <p class="hint">숫자 4~8자리</p>
+    </div>
+    <button class="btn btn--sm" onclick="saveSettings(this)">설정 저장</button>
+  </div>
+  <div class="card">
+    <h2 class="sec-title">기록 지우기</h2>
+    <p class="sec-sub">학생들이 낸 기록과 소감을 모두 지웁니다. 과제와 학생 명단은 그대로 남습니다. 되돌릴 수 없습니다.</p>
+    <button class="btn btn--sm btn--danger" onclick="clearRecords(this)">모든 기록 지우기</button>
+  </div>
+  <div class="card">
+    <h2 class="sec-title">앱 주소</h2>
+    <p class="sec-sub" style="word-break:break-all">${esc(apiUrl())}</p>
+    <button class="btn btn--sm btn--quiet" onclick="if(confirm('이 기기에 저장된 앱 주소를 지웁니다. 계속할까요?')){localStorage.removeItem('vac_api');location.reload()}">이 기기에서 주소 지우기</button>
+  </div>`;
+}
+
+async function saveSettings(btn){
+  const newPin = $('#newpin').value.trim();
+  if(newPin && !/^\d{4,8}$/.test(newPin)) return toast('PIN은 숫자 4~8자리로 정해 주세요.', true);
+  busy(btn, true);
+  try{
+    await api('saveSettings', {
+      pin:S.pin, newPin,
+      className:$('#cls').value.trim(),
+      notice:$('#notice').value.trim(),
+      deadline:$('#dl').value
+    });
+    if(newPin) S.pin = newPin;
+    S.boot = await api('bootstrap');
+    await refreshDash(true);
+    toast('설정을 저장했습니다.');
+  }catch(err){ busy(btn,false); toast(err.message, true); }
+}
+
+async function clearRecords(btn){
+  if(!confirm('학생들이 낸 기록을 모두 지웁니다. 되돌릴 수 없습니다. 계속할까요?')) return;
+  if(!confirm('정말 지울까요? 먼저 CSV로 내보내 두는 것을 권합니다.')) return;
+  busy(btn, true, '지우는 중…');
+  try{
+    await api('clearRecords', {pin:S.pin});
+    await refreshDash(true);
+    toast('기록을 모두 지웠습니다.');
+  }catch(err){ busy(btn,false); toast(err.message, true); }
+}
+
+/* ── 실행 ────────────────────────────────────────────── */
+start();
+</script>
+</body>
+</html>
