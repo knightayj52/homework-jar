@@ -291,6 +291,27 @@ table.list td.num{font-variant-numeric:tabular-nums;color:var(--ink-soft)}
 }
 .modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 
+/* 링크·QR */
+.linkbox{
+  font-size:13px;word-break:break-all;line-height:1.6;
+  background:#F6FAFB;border:1.5px solid var(--line-soft);border-radius:10px;padding:12px 14px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--mark);
+}
+.qrbox{display:inline-block;padding:14px;background:#fff;border:1.5px solid var(--line);border-radius:14px}
+.qrbox svg{display:block}
+code{background:#F1F7F8;border-radius:5px;padding:1px 5px;font-size:.92em}
+
+.printcard{display:none}
+@media print{
+  body{background:#fff}
+  .topbar,.tabs,.card,.submitbar,.toast,.modal-bg{display:none !important}
+  .printcard{display:block;text-align:center;padding-top:24px}
+  .print-cls{font-size:15px;color:#000;letter-spacing:2px}
+  .print-title{font-family:var(--display);font-size:34px;margin:4px 0 26px}
+  .print-qr svg{width:340px;height:340px}
+  .print-help{margin-top:26px;font-size:16px}
+}
+
 /* 안내 */
 .toast{
   position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:80;
@@ -328,8 +349,271 @@ table.list td.num{font-variant-numeric:tabular-nums;color:var(--ink-soft)}
    ══════════════════════════════════════════════════════ */
 const APP_URL = "";
 
+
+/* ── QR 코드 생성기 (바이트 모드, 오류정정 M) ─────────────────
+   외부 라이브러리 없이 동작합니다. 버전 1~15까지 자동 선택. */
+const QR = (function(){
+  // GF(256) 지수·로그표
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  for(let i=0, x=1; i<255; i++){ EXP[i]=x; LOG[x]=i; x<<=1; if(x & 0x100) x ^= 0x11D; }
+  for(let i=255; i<512; i++) EXP[i] = EXP[i-255];
+  const mul = (a,b)=> (a===0||b===0) ? 0 : EXP[LOG[a]+LOG[b]];
+
+  // 버전별 [EC코드워드/블록, 그룹1 블록수, 그룹1 데이터수, 그룹2 블록수, 그룹2 데이터수] — 레벨 M
+  const RS = {
+    1:[10,1,16,0,0],  2:[16,1,28,0,0],  3:[26,1,44,0,0],  4:[18,2,32,0,0],
+    5:[24,2,43,0,0],  6:[16,4,27,0,0],  7:[18,4,31,0,0],  8:[22,2,38,2,39],
+    9:[22,3,36,2,37], 10:[26,4,43,1,44], 11:[30,1,50,4,51], 12:[22,6,36,2,37],
+    13:[22,8,37,1,38], 14:[24,4,40,5,41], 15:[24,5,41,5,42]
+  };
+  const ALIGN = {
+    1:[], 2:[6,18], 3:[6,22], 4:[6,26], 5:[6,30], 6:[6,34], 7:[6,22,38],
+    8:[6,24,42], 9:[6,26,46], 10:[6,28,50], 11:[6,30,54], 12:[6,32,58],
+    13:[6,34,62], 14:[6,26,46,66], 15:[6,26,48,70]
+  };
+  const dataCap = v => { const r = RS[v]; return r[1]*r[2] + r[3]*r[4]; };
+
+  function rsGen(n){
+    let p = [1];
+    for(let i=0;i<n;i++){
+      const q = new Array(p.length+1).fill(0);
+      for(let j=0;j<p.length;j++){ q[j] ^= mul(p[j], 1); q[j+1] ^= mul(p[j], EXP[i]); }
+      p = q;
+    }
+    return p;
+  }
+  function rsEncode(data, ecLen){
+    const gen = rsGen(ecLen);
+    const res = new Uint8Array(data.length + ecLen);
+    res.set(data);
+    for(let i=0;i<data.length;i++){
+      const f = res[i];
+      if(f === 0) continue;
+      for(let j=0;j<gen.length;j++) res[i+j] ^= mul(gen[j], f);
+    }
+    return res.slice(data.length);
+  }
+
+  function bch(value, gen, genBits){
+    let v = value << (genBits-1);
+    const top = 1 << (genBits-1);
+    for(let i = 31; i >= genBits-1; i--){
+      if(v & (1<<i)) v ^= gen << (i - (genBits-1));
+    }
+    return (value << (genBits-1)) | v;
+  }
+  const formatBits = mask => (bch((0 << 3) | mask, 0x537, 11) ^ 0x5412) & 0x7FFF; // 레벨 M = 00
+  const versionBits = v => bch(v, 0x1F25, 13) & 0x3FFFF;
+
+  function build(text){
+    const bytes = new TextEncoder().encode(text);
+
+    let version = 0;
+    for(let v=1; v<=15; v++){
+      const lenBits = v < 10 ? 8 : 16;
+      if(4 + lenBits + bytes.length*8 <= dataCap(v)*8){ version = v; break; }
+    }
+    if(!version) throw new Error('내용이 너무 깁니다.');
+
+    // 비트열 만들기
+    const bits = [];
+    const push = (val, n)=>{ for(let i=n-1;i>=0;i--) bits.push((val>>i) & 1); };
+    push(4, 4);
+    push(bytes.length, version < 10 ? 8 : 16);
+    bytes.forEach(b=>push(b, 8));
+    const capBits = dataCap(version) * 8;
+    for(let i=0; i<4 && bits.length<capBits; i++) bits.push(0);
+    while(bits.length % 8) bits.push(0);
+    const words = [];
+    for(let i=0;i<bits.length;i+=8){
+      let b = 0; for(let j=0;j<8;j++) b = (b<<1) | bits[i+j];
+      words.push(b);
+    }
+    const padBytes = [0xEC, 0x11];
+    for(let i=0; words.length < dataCap(version); i++) words.push(padBytes[i % 2]);
+
+    // 블록 나누기 + 오류정정
+    const [ecLen, g1n, g1d, g2n, g2d] = RS[version];
+    const blocks = [], ecs = [];
+    let p = 0;
+    for(let i=0;i<g1n;i++){ const b = words.slice(p, p+g1d); p += g1d; blocks.push(b); ecs.push(rsEncode(b, ecLen)); }
+    for(let i=0;i<g2n;i++){ const b = words.slice(p, p+g2d); p += g2d; blocks.push(b); ecs.push(rsEncode(b, ecLen)); }
+
+    // 인터리브
+    const out = [];
+    const maxD = Math.max(g1d, g2d);
+    for(let i=0;i<maxD;i++) blocks.forEach(b=>{ if(i < b.length) out.push(b[i]); });
+    for(let i=0;i<ecLen;i++) ecs.forEach(e=>out.push(e[i]));
+
+    // 모듈 배치
+    const size = version*4 + 17;
+    const m = Array.from({length:size}, ()=>new Int8Array(size).fill(-1));
+    const set = (r,c,v)=>{ m[r][c] = v; };
+
+    const finder = (r,c)=>{
+      for(let i=-1;i<=7;i++) for(let j=-1;j<=7;j++){
+        const rr = r+i, cc = c+j;
+        if(rr<0||cc<0||rr>=size||cc>=size) continue;
+        const on = (i>=0&&i<=6&&(j===0||j===6)) || (j>=0&&j<=6&&(i===0||i===6)) || (i>=2&&i<=4&&j>=2&&j<=4);
+        set(rr, cc, on?1:0);
+      }
+    };
+    finder(0,0); finder(0,size-7); finder(size-7,0);
+
+    for(let i=8;i<size-8;i++){ const v = i%2===0?1:0; set(6,i,v); set(i,6,v); }
+
+    const centers = ALIGN[version];
+    centers.forEach(r=>centers.forEach(c=>{
+      if((r<=8&&c<=8) || (r<=8&&c>=size-9) || (r>=size-9&&c<=8)) return;
+      for(let i=-2;i<=2;i++) for(let j=-2;j<=2;j++){
+        const on = Math.max(Math.abs(i),Math.abs(j))!==1;
+        set(r+i, c+j, on?1:0);
+      }
+    }));
+
+    set(size-8, 8, 1); // 항상 검은 모듈
+
+    // 형식정보 자리 예약
+    const reserve = [];
+    for(let i=0;i<9;i++){ if(m[8][i]===-1) reserve.push([8,i]); if(m[i][8]===-1) reserve.push([i,8]); }
+    for(let i=0;i<8;i++){ if(m[8][size-1-i]===-1) reserve.push([8,size-1-i]); if(m[size-1-i][8]===-1) reserve.push([size-1-i,8]); }
+    reserve.forEach(([r,c])=>set(r,c,0));
+
+    if(version >= 7){
+      const vb = versionBits(version);
+      for(let i=0;i<18;i++){
+        const bit = (vb>>i) & 1;
+        set(Math.floor(i/3), size-11 + i%3, bit);
+        set(size-11 + i%3, Math.floor(i/3), bit);
+      }
+    }
+
+    // 함수 패턴 위치 기록(마스킹 제외용)
+    const fixed = m.map(row=>Array.from(row, v=>v!==-1));
+
+    // 데이터 지그재그 배치
+    let bi = 0, up = true;
+    const dataBits = [];
+    out.forEach(w=>{ for(let i=7;i>=0;i--) dataBits.push((w>>i)&1); });
+    for(let col = size-1; col > 0; col -= 2){
+      if(col === 6) col--;
+      for(let k=0; k<size; k++){
+        const row = up ? size-1-k : k;
+        for(let c of [col, col-1]){
+          if(m[row][c] !== -1) continue;
+          m[row][c] = bi < dataBits.length ? dataBits[bi] : 0;
+          bi++;
+        }
+      }
+      up = !up;
+    }
+
+    // 마스크 8종 중 벌점이 가장 낮은 것 선택
+    const maskFn = [
+      (r,c)=>(r+c)%2===0, (r,c)=>r%2===0, (r,c)=>c%3===0, (r,c)=>(r+c)%3===0,
+      (r,c)=>(Math.floor(r/2)+Math.floor(c/3))%2===0,
+      (r,c)=>((r*c)%2 + (r*c)%3)===0,
+      (r,c)=>(((r*c)%2 + (r*c)%3)%2)===0,
+      (r,c)=>(((r+c)%2 + (r*c)%3)%2)===0
+    ];
+    let best = null, bestScore = Infinity;
+    for(let mk=0; mk<8; mk++){
+      const t = m.map((row,r)=>Array.from(row,(v,c)=> fixed[r][c] ? v : (maskFn[mk](r,c) ? v^1 : v)));
+      const fb = formatBits(mk);
+      for(let i=0;i<15;i++){
+        const bit = (fb >> (14-i)) & 1;
+        if(i<6)       t[8][i] = bit;
+        else if(i<8)  t[8][i+1] = bit;
+        else if(i===8) t[7][8] = bit;
+        else          t[14-i][8] = bit;
+        if(i<7)  t[size-1-i][8] = bit;
+        else     t[8][size-8+(i-7)] = bit;
+      }
+      t[size-8][8] = 1;
+      const s = penalty(t, size);
+      if(s < bestScore){ bestScore = s; best = t; }
+    }
+    return {size, modules:best};
+  }
+
+  function penalty(t, size){
+    let score = 0;
+    // 규칙1: 같은 색 연속
+    for(let i=0;i<size;i++){
+      for(const dir of [0,1]){
+        let run = 1;
+        for(let j=1;j<size;j++){
+          const a = dir ? t[j][i] : t[i][j];
+          const b = dir ? t[j-1][i] : t[i][j-1];
+          if(a === b){ run++; }
+          else { if(run >= 5) score += run - 2; run = 1; }
+        }
+        if(run >= 5) score += run - 2;
+      }
+    }
+    // 규칙2: 2x2 같은 색
+    for(let r=0;r<size-1;r++) for(let c=0;c<size-1;c++){
+      const v = t[r][c];
+      if(v===t[r][c+1] && v===t[r+1][c] && v===t[r+1][c+1]) score += 3;
+    }
+    // 규칙3: 1:1:3:1:1 패턴
+    const pat1 = [1,0,1,1,1,0,1,0,0,0,0], pat2 = [0,0,0,0,1,0,1,1,1,0,1];
+    for(let i=0;i<size;i++) for(let j=0;j<=size-11;j++){
+      for(const dir of [0,1]){
+        let ok1 = true, ok2 = true;
+        for(let k=0;k<11;k++){
+          const v = dir ? t[j+k][i] : t[i][j+k];
+          if(v !== pat1[k]) ok1 = false;
+          if(v !== pat2[k]) ok2 = false;
+        }
+        if(ok1) score += 40;
+        if(ok2) score += 40;
+      }
+    }
+    // 규칙4: 검은 모듈 비율
+    let dark = 0;
+    for(let r=0;r<size;r++) for(let c=0;c<size;c++) dark += t[r][c];
+    const pct = dark * 100 / (size*size);
+    score += Math.floor(Math.abs(pct - 50) / 5) * 10;
+    return score;
+  }
+
+  // SVG 문자열로 그리기
+  function svg(text, px){
+    const {size, modules} = build(text);
+    const q = 4, total = size + q*2, s = (px||280) / total;
+    let path = '';
+    for(let r=0;r<size;r++) for(let c=0;c<size;c++){
+      if(modules[r][c]) path += `M${(c+q)*s} ${(r+q)*s}h${s}v${s}h${-s}z`;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${px||280}" height="${px||280}" viewBox="0 0 ${px||280} ${px||280}" shape-rendering="crispEdges" role="img" aria-label="접속 QR 코드">
+      <rect width="100%" height="100%" fill="#fff"/><path d="${path}" fill="#12303F"/></svg>`;
+  }
+
+  return {build, svg};
+})();
+
 /* ── 통신 ────────────────────────────────────────────── */
-function apiUrl(){ return APP_URL || localStorage.getItem('vac_api') || ''; }
+/* ── 앱 주소 ─────────────────────────────────────────── */
+// 워크스페이스 계정(/a/macros/도메인/) 형태도 함께 허용
+const EXEC_RE = /^https:\/\/script\.google\.com\/(a\/macros\/[^\/]+|macros)\/s\/[\w-]+\/exec$/;
+
+// 주소 우선순위: 링크의 ?api= → 이 기기에 저장된 값 → 코드에 적어 둔 값
+function apiUrl(){
+  const fromLink = new URLSearchParams(location.search).get('api');
+  if(fromLink && EXEC_RE.test(fromLink.trim())){
+    const v = fromLink.trim();
+    try{ localStorage.setItem('vac_api', v); }catch(e){}
+    return v;
+  }
+  let saved = '';
+  try{ saved = localStorage.getItem('vac_api') || ''; }catch(e){}
+  return saved || APP_URL || '';
+}
+
+function shareLink(){
+  return location.origin + location.pathname + '?api=' + apiUrl();
+}
 
 async function api(action, payload){
   const url = apiUrl();
@@ -471,11 +755,11 @@ function viewSetup(){
   return `${header('', '')}
   <div class="card">
     <h2 class="sec-title">앱 주소를 연결해 주세요</h2>
-    <p class="sec-sub">Apps Script에서 웹 앱으로 배포한 뒤 받은 주소를 붙여넣으면 됩니다. 이 태블릿에만 저장되고, 한 번만 하면 됩니다.</p>
+    <p class="sec-sub">Apps Script에서 웹 앱으로 배포한 뒤 받은 주소를 붙여넣으면 됩니다. 선생님이 한 번만 하면 되고, 그다음부터는 학생용 링크와 QR 코드가 만들어져 학생들은 이 화면을 볼 일이 없습니다.</p>
     ${S.setupError ? `<p class="sec-sub" style="color:var(--warn)">${esc(S.setupError)}</p>`:''}
     <div class="field">
       <label for="apiurl">웹 앱 주소</label>
-      <input type="text" id="apiurl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc(localStorage.getItem('vac_api')||'')}">
+      <input type="text" id="apiurl" placeholder="https://script.google.com/macros/s/.../exec" value="${esc((function(){try{return localStorage.getItem('vac_api')||''}catch(e){return ''}})())}">
       <p class="hint">주소는 /exec 로 끝나야 합니다.</p>
     </div>
     <button class="btn" onclick="saveUrl(this)">연결하기</button>
@@ -484,10 +768,10 @@ function viewSetup(){
 
 async function saveUrl(btn){
   const v = $('#apiurl').value.trim();
-  if(!/^https:\/\/script\.google\.com\/.+\/exec$/.test(v)){
-    return toast('/exec 로 끝나는 웹 앱 주소를 넣어 주세요.', true);
+  if(!EXEC_RE.test(v)){
+    return toast('/exec 로 끝나는 Apps Script 웹 앱 주소를 넣어 주세요.', true);
   }
-  localStorage.setItem('vac_api', v);
+  try{ localStorage.setItem('vac_api', v); }catch(e){}
   busy(btn, true, '연결하는 중…');
   try{
     S.boot = await api('bootstrap');
@@ -707,13 +991,13 @@ async function refreshDash(silent){
 
 /* ── 교사: 화면 ──────────────────────────────────────── */
 function viewTeacher(){
-  const tabs = [['status','현황'],['tasks','과제 설정'],['roster','학생 명단'],['settings','기본 설정']];
+  const tabs = [['status','현황'],['tasks','과제 설정'],['roster','학생 명단'],['share','링크·QR'],['settings','기본 설정']];
   const bar = tabs.map(([k,label])=>{
     const alert = (k==='status' && S.dash.summary.newCount) ? ` (${S.dash.summary.newCount})` : '';
     return `<button class="tab" role="tab" aria-selected="${S.tab===k}" onclick="goTab('${k}')">${label}${alert}</button>`;
   }).join('');
 
-  const panes = {status:paneStatus, tasks:paneTasks, roster:paneRoster, settings:paneSettings};
+  const panes = {status:paneStatus, tasks:paneTasks, roster:paneRoster, share:paneShare, settings:paneSettings};
   return `${header('선생님', `<button class="ghost" onclick="S.pin='';S.dash=null;S.view='pick';render()">나가기</button>`)}
     <div class="tabs" role="tablist">${bar}</div>
     ${panes[S.tab]()}
@@ -980,6 +1264,59 @@ async function saveStudents(btn){
   }catch(err){ busy(btn,false); toast(err.message, true); }
 }
 
+/* 링크·QR */
+function paneShare(){
+  const link = shareLink();
+  let qr;
+  try{ qr = QR.svg(link, 260); }
+  catch(e){ qr = '<p class="sec-sub">주소가 너무 길어 QR 코드를 만들지 못했습니다. 링크를 복사해 전달해 주세요.</p>'; }
+
+  return `<div class="card">
+    <h2 class="sec-title">학생용 링크</h2>
+    <p class="sec-sub">이 링크로 들어오면 앱 주소가 자동으로 맞춰집니다. 학생은 주소를 입력할 일이 없습니다.</p>
+    <div class="linkbox">${esc(link)}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn btn--sm" onclick="copyLink(this)">링크 복사</button>
+      <button class="btn btn--sm btn--quiet" onclick="window.print()">QR 인쇄하기</button>
+    </div>
+  </div>
+  <div class="card" style="text-align:center">
+    <h2 class="sec-title">접속 QR 코드</h2>
+    <p class="sec-sub">칠판에 띄우거나 인쇄해 붙여 두면 학생들이 카메라로 찍어 바로 들어옵니다.</p>
+    <div class="qrbox">${qr}</div>
+  </div>
+  <div class="card">
+    <h2 class="sec-title">다른 선생님께 나눠 줄 때</h2>
+    <p class="sec-sub">화면은 함께 쓰고, 기록은 각자의 스프레드시트에 따로 쌓입니다. 서로의 학생 자료는 보이지 않습니다.</p>
+    <ol style="margin:0;padding-left:20px;font-size:14.5px;line-height:1.9">
+      <li>선생님 스프레드시트를 <b>사본 만들기</b> 링크로 전달합니다. 공유 링크 끝의 <code>/edit?usp=sharing</code>을 <code>/copy</code>로 바꾸면 됩니다.</li>
+      <li>받은 분이 사본을 만들면 스크립트도 같이 복사됩니다. <b>배포 → 새 배포 → 웹 앱 → 모든 사용자</b>로 배포합니다.</li>
+      <li>이 화면 주소창의 <code>?api=</code> 뒤를 자기 <code>/exec</code> 주소로 바꾸면 그분의 전용 링크가 됩니다. 그 링크로 들어와 여기서 자기 QR을 뽑으면 끝입니다.</li>
+    </ol>
+  </div>
+  <div class="printcard">
+    <div class="print-cls">${esc(S.dash.className)}</div>
+    <div class="print-title">방학과제 기록장</div>
+    <div class="print-qr">${qr}</div>
+    <div class="print-help">카메라로 찍어 들어온 뒤, 자기 번호를 눌러 기록하세요.</div>
+  </div>`;
+}
+
+async function copyLink(btn){
+  const link = shareLink();
+  try{
+    await navigator.clipboard.writeText(link);
+    toast('링크를 복사했습니다.');
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = link; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('링크를 복사했습니다.'); }
+    catch(e2){ toast('복사하지 못했습니다. 주소를 직접 선택해 복사해 주세요.', true); }
+    ta.remove();
+  }
+}
+
 /* 기본 설정 */
 function paneSettings(){
   const d = S.dash;
@@ -1013,9 +1350,9 @@ function paneSettings(){
     <button class="btn btn--sm btn--danger" onclick="clearRecords(this)">모든 기록 지우기</button>
   </div>
   <div class="card">
-    <h2 class="sec-title">앱 주소</h2>
-    <p class="sec-sub" style="word-break:break-all">${esc(apiUrl())}</p>
-    <button class="btn btn--sm btn--quiet" onclick="if(confirm('이 기기에 저장된 앱 주소를 지웁니다. 계속할까요?')){localStorage.removeItem('vac_api');location.reload()}">이 기기에서 주소 지우기</button>
+    <h2 class="sec-title">연결된 앱 주소</h2>
+    <p class="sec-sub" style="word-break:break-all;font-family:ui-monospace,monospace;font-size:13px">${esc(apiUrl())}</p>
+    <button class="btn btn--sm btn--quiet" onclick="if(confirm('이 기기의 연결을 끊고 주소를 다시 입력받습니다. 계속할까요?')){try{localStorage.removeItem('vac_api')}catch(e){};location.href=location.pathname}">연결 끊기</button>
   </div>`;
 }
 
