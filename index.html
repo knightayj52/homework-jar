@@ -122,7 +122,7 @@ button{cursor:pointer}
 
 /* ── 학생: 기록 카드 ─────────────────────────────────── */
 .task{
-  display:grid;grid-template-columns:84px 1fr;gap:18px;align-items:center;
+  display:grid;grid-template-columns:88px 1fr;gap:18px;align-items:center;
   padding:16px 0;border-bottom:1px dashed var(--line);
 }
 .task:last-of-type{border-bottom:0}
@@ -137,10 +137,29 @@ button{cursor:pointer}
 .step-btn:hover{background:var(--paper)}
 .step-btn:active{transform:scale(.93)}
 .step-btn[disabled]{opacity:.3;cursor:not-allowed}
-.step-val{
-  min-width:96px;text-align:center;font-size:15px;color:var(--ink-soft);
+.step-val{text-align:center}
+.step-input{
+  width:110px;min-height:56px;text-align:center;
+  font-size:30px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;
+  border:2px solid var(--line);border-radius:12px;background:#fff;padding:4px;
+  -moz-appearance:textfield;appearance:textfield;
 }
-.step-val b{display:block;font-size:30px;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.step-input::-webkit-outer-spin-button,.step-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.step-input:focus{border-color:var(--mark);outline:none;box-shadow:0 0 0 3px rgba(14,110,120,.15)}
+.step-unit{display:block;font-size:13.5px;color:var(--ink-soft);margin-top:5px}
+.tickhint{margin:10px 0 0;font-size:12.5px;color:var(--ink-soft)}
+
+/* 병을 위아래로 쓸어서 채우기 */
+.jarwrap{
+  touch-action:none;cursor:ns-resize;user-select:none;-webkit-user-select:none;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.jarwrap .jar{pointer-events:none}
+.jargrip{
+  font-size:13px;color:var(--ink-soft);line-height:1;letter-spacing:1px;
+  border:1.5px solid var(--line);border-radius:999px;padding:2px 10px;background:#fff;
+}
+.jarwrap:hover .jargrip{border-color:var(--mark);color:var(--mark)}
 .badge-done{
   display:inline-block;margin-left:8px;font-size:12px;font-weight:700;color:#8A6300;
   background:#FFF3D0;border:1.5px solid #F0D389;border-radius:999px;padding:2px 9px;vertical-align:3px;
@@ -326,7 +345,8 @@ code{background:#F1F7F8;border-radius:5px;padding:1px 5px;font-size:.92em}
 @media (max-width:560px){
   .wrap{padding:12px 12px 130px}
   .brand h1{font-size:22px}
-  .task{grid-template-columns:64px 1fr;gap:14px}
+  .task{grid-template-columns:68px 1fr;gap:14px}
+  .step-input{width:92px}
   .jar--lg{width:64px;height:100px}
   .row2{grid-template-columns:1fr}
   .editrow{grid-template-columns:1fr 1fr;gap:8px}
@@ -674,9 +694,17 @@ const $ = (sel, el)=> (el||document).querySelector(sel);
 const esc = (s)=> String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const clamp = (n,a,b)=> Math.max(a, Math.min(b, n));
 
+// 눈금 간격은 1·2·5·10·20·50·100 중에서 고른다. 목표가 크면
+// 눈금 한 칸이 여러 개를 뜻하게 되지만, 대신 세기 좋은 단위로 떨어진다.
 function tickCount(goal){
-  if(goal <= 20) return Math.max(1, goal);
-  return Math.max(1, Math.round(goal / Math.ceil(goal/20)));
+  const g = Math.max(1, goal);
+  const steps = [1,2,5,10,20,25,50,100,200,500];
+  for(const s of steps){ if(g/s <= 20) return g/s; }
+  return 20;
+}
+// 눈금 한 칸이 몇 개를 뜻하는지 (안내 문구용)
+function tickUnit(goal){
+  return Math.round(Math.max(1, goal) / tickCount(goal));
 }
 
 function jarHTML(pct, tint, goal, size){
@@ -832,16 +860,32 @@ function viewRecord(){
   const rows = b.tasks.map(t=>{
     const n = S.draft[t.id] || 0;
     const pct = Math.round(n / t.goal * 100);
+    const step = tickUnit(t.goal);
     return `<div class="task" data-task="${esc(t.id)}">
-      ${jarHTML(pct, t.color, t.goal, 'lg')}
+      <div class="jarwrap" title="위아래로 쓸어서 채우기"
+           onpointerdown="jarStart(event,'${t.id}')" onpointermove="jarMove(event)"
+           onpointerup="jarEnd(event)" onpointercancel="jarEnd(event)">
+        ${jarHTML(pct, t.color, t.goal, 'lg')}
+        <div class="jargrip">↕</div>
+      </div>
       <div>
         <h3 class="task-name">${esc(t.name)}${n>=t.goal?'<span class="badge-done">다 했어요</span>':''}</h3>
         ${t.desc ? `<p class="task-desc">${esc(t.desc)}</p>`:''}
         <div class="stepper">
-          <button class="step-btn" onclick="bump('${t.id}',-1)" ${n<=0?'disabled':''} aria-label="${esc(t.name)} 하나 줄이기">−</button>
-          <div class="step-val"><b>${n}</b>${esc(t.unit)} / 목표 ${t.goal}${esc(t.unit)}</div>
-          <button class="step-btn" onclick="bump('${t.id}',1)" ${n>=t.goal?'disabled':''} aria-label="${esc(t.name)} 하나 늘리기">＋</button>
+          <button class="step-btn" onpointerdown="holdStart(event,'${t.id}',-1)" onpointerup="holdEnd()"
+                  onpointerleave="holdEnd()" onpointercancel="holdEnd()" onclick="btnClick('${t.id}',-1)"
+                  ${n<=0?'disabled':''} aria-label="${esc(t.name)} 줄이기">−</button>
+          <div class="step-val">
+            <input class="step-input" type="number" inputmode="numeric" min="0" max="${t.goal}" value="${n}"
+                   onfocus="this.select()" oninput="typeVal('${t.id}',this)" onblur="typeVal('${t.id}',this,true)"
+                   aria-label="${esc(t.name)} 해낸 수 직접 입력">
+            <span class="step-unit">${esc(t.unit)} / 목표 ${t.goal}${esc(t.unit)}</span>
+          </div>
+          <button class="step-btn" onpointerdown="holdStart(event,'${t.id}',1)" onpointerup="holdEnd()"
+                  onpointerleave="holdEnd()" onpointercancel="holdEnd()" onclick="btnClick('${t.id}',1)"
+                  ${n>=t.goal?'disabled':''} aria-label="${esc(t.name)} 늘리기">＋</button>
         </div>
+        ${step > 1 ? `<p class="tickhint">병의 눈금 한 칸 = ${step}${esc(t.unit)}</p>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -850,8 +894,8 @@ function viewRecord(){
 
   return `${header(`${me.sid}번 ${me.name}`, `<button class="ghost" onclick="leave()">나가기</button>`)}
   <div class="card">
-    <h2 class="sec-title">해 온 만큼 눌러서 채워 주세요</h2>
-    <p class="sec-sub">병에 그어진 눈금 한 칸이 과제 하나입니다. 솔직하게 적을수록 좋아요.</p>
+    <h2 class="sec-title">해 온 만큼 병을 채워 주세요</h2>
+    <p class="sec-sub">세 가지 방법이 있습니다. <b>병을 위아래로 쓸거나</b>, <b>숫자를 눌러 직접 적거나</b>, <b>＋ − 를 누르면</b> 됩니다. 수가 많으면 ＋를 꾹 누르고 계세요.</p>
     ${rows}
   </div>
   <div class="card">
@@ -864,21 +908,21 @@ function viewRecord(){
   </div></div>`;
 }
 
-function bump(taskId, delta){
+/* 값 바꾸기 — 전체를 다시 그리면 물이 차오르는 움직임이 끊기므로 바뀐 부분만 손봄 */
+function setVal(taskId, v, fromInput){
   const t = S.boot.tasks.find(x=>x.id===taskId);
-  const v = clamp((S.draft[taskId]||0) + delta, 0, t.goal);
+  v = clamp(Math.round(Number(v) || 0), 0, t.goal);
   if(v === S.draft[taskId]) return;
   S.draft[taskId] = v;
 
-  // 전체를 다시 그리면 물이 차오르는 움직임이 끊기므로 바뀐 부분만 손봄
   const el = document.querySelector('.task[data-task="'+taskId+'"]');
-  if(!el) return render();
+  if(!el) return;
 
   const jar = el.querySelector('.jar');
   jar.style.setProperty('--fill', Math.round(v / t.goal * 100) + '%');
   jar.classList.toggle('full', v >= t.goal);
 
-  el.querySelector('.step-val b').textContent = v;
+  if(!fromInput) el.querySelector('.step-input').value = v;
   const btns = el.querySelectorAll('.step-btn');
   btns[0].disabled = v <= 0;
   btns[1].disabled = v >= t.goal;
@@ -891,6 +935,61 @@ function bump(taskId, delta){
   const total = document.querySelector('.total b');
   if(total) total.textContent = overallRate(S.draft, S.boot.tasks) + '%';
 }
+
+function bump(taskId, delta){ setVal(taskId, (S.draft[taskId]||0) + delta); }
+
+/* 숫자 직접 입력 */
+function typeVal(taskId, input, done){
+  const t = S.boot.tasks.find(x=>x.id===taskId);
+  if(input.value === '' && !done) return;      // 지우는 중에는 건드리지 않음
+  const v = clamp(Math.round(Number(input.value) || 0), 0, t.goal);
+  setVal(taskId, v, true);
+  if(done || String(v) !== input.value) input.value = v;
+}
+
+/* ＋ − 꾹 누르면 점점 빨라짐 */
+let holdA = null, holdB = null, usedPointer = false;
+function holdStart(e, taskId, delta){
+  if(e.button > 0) return;
+  usedPointer = true;
+  bump(taskId, delta);
+  let wait = 420;
+  holdA = setTimeout(function tick(){
+    bump(taskId, delta);
+    wait = Math.max(30, wait * 0.72);
+    holdB = setTimeout(tick, wait);
+  }, 420);
+}
+function holdEnd(){ clearTimeout(holdA); clearTimeout(holdB); }
+// 키보드로 누른 경우에만 동작 (포인터는 holdStart가 이미 처리)
+function btnClick(taskId, delta){
+  if(usedPointer){ usedPointer = false; return; }
+  bump(taskId, delta);
+}
+
+/* 병을 위아래로 쓸어서 채우기 */
+let dragJar = null;
+function jarStart(e, taskId){
+  const body = e.currentTarget.querySelector('.jar-body');
+  if(!body) return;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  dragJar = {taskId, rect: body.getBoundingClientRect()};
+  jarMove(e);
+}
+function jarMove(e){
+  if(!dragJar) return;
+  e.preventDefault();
+  const t = S.boot.tasks.find(x=>x.id===dragJar.taskId);
+  const r = dragJar.rect;
+  const ratio = clamp((r.bottom - e.clientY) / r.height, 0, 1);
+  setVal(dragJar.taskId, Math.round(ratio * t.goal));
+}
+function jarEnd(e){
+  if(!dragJar) return;
+  dragJar = null;
+  try{ e.currentTarget.releasePointerCapture(e.pointerId); }catch(err){}
+}
+
 
 function leave(){
   if(!confirm('제출하지 않고 나가면 지금 입력한 내용은 저장되지 않습니다. 나갈까요?')) return;
